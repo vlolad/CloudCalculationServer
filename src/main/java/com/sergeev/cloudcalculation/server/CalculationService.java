@@ -6,6 +6,8 @@ import com.sergeev.cloudcalculation.model.ResultResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import java.util.Arrays;
+
 import static com.sergeev.cloudcalculation.util.Constants.OPERATORS;
 
 @Service
@@ -15,6 +17,13 @@ public class CalculationService {
     public ResultResponse calculateFromString(String calc) {
         //Split input string on single String array
         String[] symbols = calc.split("");
+        //If string starts from negative value - add 0 as first element
+        if (symbols[0].equals("-")) {
+            String[] newArr = Arrays.copyOf(symbols, symbols.length + 1);
+            newArr[0] = "0";
+            System.arraycopy(symbols, 0, newArr, 1, symbols.length);
+            symbols = newArr;
+        }
         //Create NodeList from single String array
         NodeList list = packArray(symbols);
         //Calculating operations in list until there is only one node left. This node is a final result.
@@ -29,8 +38,15 @@ public class CalculationService {
 
     // Test code
 //    public static void main(String[] args) {
-//        String calc = "3*3-3+8/2";
+//        String calc = "-5+4*2";
 //        String[] symbols = calc.split("");
+//
+//        if (symbols[0].equals("-")) {
+//            String[] newArr = Arrays.copyOf(symbols, symbols.length + 1);
+//            newArr[0] = "0";
+//            System.arraycopy(symbols, 0, newArr, 1, symbols.length);
+//            symbols = newArr;
+//        }
 //
 //        NodeList list = packArray(symbols);
 //        System.out.println(list);
