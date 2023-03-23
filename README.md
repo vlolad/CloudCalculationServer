@@ -1,4 +1,4 @@
-#Cloud calculation
+# Cloud calculation
 
 Application for cloud calculation (literally).
 
