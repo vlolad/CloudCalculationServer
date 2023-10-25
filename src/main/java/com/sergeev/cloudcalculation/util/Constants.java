@@ -1,13 +1,16 @@
 package com.sergeev.cloudcalculation.util;
 
 import java.util.HashSet;
-import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class Constants {
 
-    //Supported operators
-    public static final Set<String> OPERATORS = Stream.of("+", "-", "*", "/")
+    public static final String IS_DIGIT = "\\d+";
+    public static final String TIER_I = "[+#-]+";
+    public static final String TIER_II = "[*#/]+";
+    public static final HashSet<String> OPERATIONS = Stream.of("+", "-", "*", "/")
+            .collect(Collectors.toCollection(HashSet::new));
+    public static final HashSet<String> QUANTITY = Stream.of("(", ")")
             .collect(Collectors.toCollection(HashSet::new));
 }

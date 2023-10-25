@@ -25,7 +25,8 @@ public class StringCalculatorController {
     @PostMapping()
     public ResultResponse calculate(@RequestParam(name = "calc") String calc) {
         log.info("Request calculation for string: {}", calc);
-        return calculationService.calculateFromString(calc);
+        String response = calculationService.calculateFromString(calc);
+        return new ResultResponse(response);
     }
 
 }

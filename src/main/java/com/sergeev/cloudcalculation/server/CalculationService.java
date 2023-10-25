@@ -1,81 +1,59 @@
 package com.sergeev.cloudcalculation.server;
 
-import com.sergeev.cloudcalculation.model.Node;
-import com.sergeev.cloudcalculation.model.NodeList;
-import com.sergeev.cloudcalculation.model.ResultResponse;
+import com.sergeev.cloudcalculation.model.Block;
+import com.sergeev.cloudcalculation.model.Expression;
+import com.sergeev.cloudcalculation.util.BlockType;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
-import java.util.Arrays;
-
-import static com.sergeev.cloudcalculation.util.Constants.OPERATORS;
+import static com.sergeev.cloudcalculation.util.Constants.*;
 
 @Service
 @Slf4j
 public class CalculationService {
 
-    public ResultResponse calculateFromString(String calc) {
-        //Split input string on single String array
-        String[] symbols = calc.split("");
-        //If string starts from negative value - add 0 as first element
-        if (symbols[0].equals("-")) {
-            String[] newArr = Arrays.copyOf(symbols, symbols.length + 1);
-            newArr[0] = "0";
-            System.arraycopy(symbols, 0, newArr, 1, symbols.length);
-            symbols = newArr;
-        }
-        //Create NodeList from single String array
-        NodeList list = packArray(symbols);
-        //Calculating operations in list until there is only one node left. This node is a final result.
-        while (list.getSize() != 1) {
-            list.calculateNext();
-        }
-
-        log.info("The answer is {}", list.getAnswer().toString());
-        //Return answer in simple json format
-        return new ResultResponse(list.getAnswer().toString());
+    public String calculateFromString(String calc) {
+        return calculateExpression(parseLine(calc));
     }
 
-    // Test code
-//    public static void main(String[] args) {
-//        String calc = "-5+4*2";
-//        String[] symbols = calc.split("");
-//
-//        if (symbols[0].equals("-")) {
-//            String[] newArr = Arrays.copyOf(symbols, symbols.length + 1);
-//            newArr[0] = "0";
-//            System.arraycopy(symbols, 0, newArr, 1, symbols.length);
-//            symbols = newArr;
-//        }
-//
-//        NodeList list = packArray(symbols);
-//        System.out.println(list);
-//
-//        while (list.getSize() != 1) {
-//            list.calculateNext();
-//        }
-//
-//        System.out.println(list.getAnswer());
-//    }
+    private String calculateExpression(Expression exp) {
+        //check for round brackets first and calculate them
+        try { //TODO custom exception
+            exp.checkQuantity();
+        } catch (Throwable e) {
+            System.out.println(e.getMessage());
+        }
 
-    private static NodeList packArray(String[] symbols) {
-        NodeList list = new NodeList();
+        exp.checkFirst(); //If first Block is "-", its transforms into Number-Block
+        Block result = exp.calculate();
 
-        for (int i = 0; i < symbols.length; i++) {
-            if (OPERATORS.contains(symbols[i])) {
-                list.add(new Node(true, symbols[i]));
+        return result.getValue();
+    }
+
+    private Expression parseLine(String line) {
+        String[] lines = line.split("");
+        int i;
+        StringBuilder sb;
+        Expression exp = new Expression();
+
+        for (i = 0; i < lines.length; i++) {
+            if (OPERATIONS.contains(lines[i])) {
+                exp.add(new Block(BlockType.OPERATOR, lines[i]));
+            } else if (QUANTITY.contains(lines[i])) {
+                exp.add(new Block(BlockType.QUANTITY, lines[i]));
             } else {
-                StringBuilder s = new StringBuilder();
+                sb = new StringBuilder();
                 int move = i;
-                for (int j = i; (j < symbols.length && !OPERATORS.contains(symbols[j])); j++) {
-                    s.append(symbols[j]);
+                for (int j = i; j < lines.length && lines[j].matches(IS_DIGIT); j++) {
+                    sb.append(lines[j]);
                     move++;
                 }
-                i = move - 1;
-                list.add(new Node(false, s.toString()));
+                i = --move;
+
+                exp.add(new Block(BlockType.NUMBER, sb.toString()));
             }
         }
 
-        return list;
+        return exp;
     }
 }
