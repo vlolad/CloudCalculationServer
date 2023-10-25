@@ -30,6 +30,7 @@ public class CalculationService {
         return result.getValue();
     }
 
+    //Parsing string line to the expression, return the expression
     private Expression parseLine(String line) {
         String[] lines = line.split("");
         int i;
