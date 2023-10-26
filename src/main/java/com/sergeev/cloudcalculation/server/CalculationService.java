@@ -42,6 +42,22 @@ public class CalculationService {
                 exp.add(new Block(BlockType.OPERATOR, lines[i]));
             } else if (QUANTITY.contains(lines[i])) {
                 exp.add(new Block(BlockType.QUANTITY, lines[i]));
+            } else if (lines[i].equals("s")) {
+                sb = new StringBuilder();
+                int move = i;
+                for (int j = i; j < i + 5; j++) {
+                    sb.append(lines[j]);
+                    move++;
+                }
+                i = move;
+                while (!lines[i].equals(")")) {
+                    sb.append(lines[i]);
+                    i++;
+                }
+                sb.append(lines[i++]);
+                exp.add(new Block(BlockType.SQRT, sb.toString()));
+            } else if (lines[i].equals("^")) {
+                exp.add(new Block(BlockType.POW, lines[i]));
             } else {
                 sb = new StringBuilder();
                 int move = i;
@@ -50,7 +66,6 @@ public class CalculationService {
                     move++;
                 }
                 i = --move;
-
                 exp.add(new Block(BlockType.NUMBER, sb.toString()));
             }
         }

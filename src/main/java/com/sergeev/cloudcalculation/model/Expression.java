@@ -13,6 +13,8 @@ public class Expression {
     private int tierI = 0;
     // Operations "*" and "/"
     private int tierII = 0;
+    // Operators "sqrt" and "^"
+    private int tierIII = 0;
     //Quantity (round brackets)
     private int tierQ = 0;
 
@@ -32,6 +34,8 @@ public class Expression {
             }
         } else if (block.getType().equals(BlockType.QUANTITY)) {
             tierQ++;
+        } else if (block.getType().equals(BlockType.SQRT) || block.getType().equals(BlockType.POW)) {
+            tierIII++;
         }
 
         if (first == null) {
@@ -51,7 +55,7 @@ public class Expression {
             //If first block is "-", and second digit is negative, it changes the value...
             if (Double.parseDouble(first.getNext().getValue()) < 0) {
                 Block block = first.getNext();
-                Double newValue = Double.parseDouble(first.getNext().getValue()) * -1; //...right here
+                double newValue = Double.parseDouble(first.getNext().getValue()) * -1; //...right here
                 block.setValue(Double.toString(newValue));
                 tierI--;
                 first = block;
@@ -138,6 +142,7 @@ public class Expression {
         exp.getLast().setNext(null);
         this.tierI -= exp.getTierI();
         this.tierII -= exp.getTierII();
+        this.tierIII -= exp.getTierIII();
         this.tierQ -= exp.getTierQ();
         //Search for inside quantities
         exp.checkQuantity();
@@ -155,9 +160,20 @@ public class Expression {
         }
     }
 
-    //Calculate in queue: tierII operators first, tierI the last
+    //Calculate in queue: tierIII operators first, then tierII, tierI the last
     //If there are no operators - return the first Block, which is single in the expression
     public Block calculate() {
+        while(tierIII != 0) {
+            Block op = findTierIII();
+            if (op == null) return null;
+            if (op.getType().equals(BlockType.SQRT)) {
+                calculateSqrt(op);
+            } else {
+                calculate(op);
+            }
+            tierIII--;
+        }
+
         while (tierII != 0) {
             Block op = findTierII();
             if (op == null) return null;
@@ -198,6 +214,8 @@ public class Expression {
             case "/":
                 result = p1 / p2;
                 break;
+            case "^":
+                result = Math.pow(p1, p2);
         }
 
         Block newBlock = Block.builder()
@@ -210,7 +228,25 @@ public class Expression {
         linkBlock(newBlock);
     }
 
-    //Search for the next available operators
+    //Find square root and link the result
+    private void calculateSqrt(Block op) {
+        StringBuilder sb = new StringBuilder();
+        int i = 5;
+        while(op.getValue().charAt(i) != ')') {
+            sb.append(op.getValue().charAt(i));
+            i++;
+        }
+        double num = Double.parseDouble(sb.toString());
+        Block newBlock = Block.builder()
+                .type(BlockType.NUMBER)
+                .prev(op.getPrev())
+                .next(op.getNext())
+                .value(String.valueOf(Math.sqrt(num)))
+                .build();
+        linkBlock(newBlock);
+    }
+
+    //Search for the next available operators of tierI and tierII
     private Block findTierII() {
         return getBlock(TIER_II);
     }
@@ -228,7 +264,18 @@ public class Expression {
                 block = block.getNext();
             }
         }
+        return null;
+    }
 
+    //Search for the next available operators of tierIII
+    private Block findTierIII() {
+        Block block = first;
+        while (block != null) {
+            if (block.getType().equals(BlockType.SQRT) || block.getType().equals(BlockType.POW)) {
+                return block;
+            }
+            block = block.getNext();
+        }
         return null;
     }
 

@@ -8,7 +8,7 @@ public class Main {
     public static void main(String[] args) {
         CalculationService service = new CalculationService();
 
-        String str = "5(-5)";
+        String str = "(2+3)^2-sqrt(25)";
         System.out.println(service.calculateFromString(str));
     }
 }
