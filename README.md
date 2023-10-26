@@ -11,3 +11,7 @@ idk
 3. Each quantity = independent expression
 4. Calculates it
 5. Profit
+
+**!** Square root and exponentiation is special types of operators
+- Sqaure root calculates ad a single block
+- Exponentiation represents as "^" and calculates with others operators
